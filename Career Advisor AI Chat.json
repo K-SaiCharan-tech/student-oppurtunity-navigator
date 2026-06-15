@@ -1,0 +1,298 @@
+{
+  "name": "Career Advisor AI Chat",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Welcome! Tell me about your skills and interests, and I'll recommend the best internships, hackathons, and certifications for you.",
+        "options": {
+          "inputPlaceholder": "Tell me about your skills and interests...",
+          "loadPreviousSession": "memory",
+          "showWelcomeScreen": true,
+          "getStarted": "Start Your Career Journey",
+          "subtitle": "Get personalized recommendations for internships, hackathons & certifications",
+          "title": "Career Advisor AI",
+          "responseMode": "streaming"
+        }
+      },
+      "id": "a05530fc-4faf-4652-9f40-9be86ed1d3b1",
+      "name": "Career Chat",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        400
+      ],
+      "webhookId": "5db8fd46-98ea-4f34-ac02-5898560a5269"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "3653225a-f455-4598-8e06-6506b9f10cce",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        320,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a career advisor AI assistant specializing in helping people find internships, hackathons, and certifications based on their skills and interests.\n\nYour tools:\n- \"Search Opportunities\": Use this to search for current internships, hackathons, and certifications. Provide specific search queries like \"web development internships 2024\" or \"machine learning hackathons\" or \"AWS certifications\".\n- \"Fetch Details\": Use this to get more information about specific opportunities from URLs.\n\nWhen a user shares their skills and interests:\n1. Acknowledge their background\n2. Use the Search Opportunities tool to find relevant internships, hackathons, and certifications\n3. Present the top 3-5 recommendations in each category\n4. Include key details like dates, requirements, and application links\n5. Explain why each recommendation matches their profile\n\nBe encouraging, specific, and actionable in your recommendations.",
+          "maxIterations": 15,
+          "returnIntermediateSteps": false
+        }
+      },
+      "id": "f075406c-30f7-4742-94db-d85e9f9e8bae",
+      "name": "Career Advisor Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        656,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "search",
+        "query": "={{ $json.query }}",
+        "simplify": true,
+        "options": {
+          "maxResults": 10,
+          "searchRecencyFilter": "month"
+        },
+        "requestOptions": {}
+      },
+      "id": "ee358e53-2d45-4506-b552-768cb68aada4",
+      "name": "Search Opportunities",
+      "type": "n8n-nodes-base.perplexityTool",
+      "typeVersion": 2,
+      "position": [
+        720,
+        624
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {},
+        "optimizeResponse": true,
+        "responseType": "html",
+        "onlyContent": true,
+        "truncateResponse": true,
+        "maxLength": 2000
+      },
+      "id": "ec0744e8-1002-46da-a7ef-ffae203cc561",
+      "name": "Fetch Details",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        848,
+        624
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "deepseek-ai/DeepSeek-V3-0324",
+          "mode": "id"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        624
+      ],
+      "id": "a9979066-1371-4433-a901-49ab1553ca01",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "SHIkEcm50ILZHxfp",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "\"Based on the career opportunities found, create a detailed week by week action plan for this student to apply and prepare for success.\"",
+        "options": {
+          "systemMessage": "You are a helpful assistant\"You are an Action Planner Agent. You receive career opportunities and create personalized weekly action plans for students.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        336
+      ],
+      "id": "11698d02-fdf8-40d1-9631-4a1e5e4c5e21",
+      "name": "Action Planner Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "deepseek-ai/DeepSeek-V3-0324",
+          "mode": "id"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        544
+      ],
+      "id": "afcf45ed-3912-431c-acc9-8324e912f6d7",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "SHIkEcm50ILZHxfp",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "\"Based on the student profile and opportunities found, match and recommend the top 3 most suitable opportunities with clear reasons.\"",
+        "options": {
+          "systemMessage": "\"You are a Profile Matcher Agent. Match the student's skills and interests to the most suitable career opportunities and explain why each one fits them perfectly.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        240
+      ],
+      "id": "3bc1a549-be5d-4b60-a9bf-9036d4b337fe",
+      "name": "Profile Matcher Agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Career Chat": {
+      "main": [
+        [
+          {
+            "node": "Career Advisor Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Career Chat",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Career Advisor Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Opportunities": {
+      "ai_tool": [
+        [
+          {
+            "node": "Career Advisor Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Details": {
+      "ai_tool": [
+        [
+          {
+            "node": "Career Advisor Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Career Advisor Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Profile Matcher Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Action Planner Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Action Planner Agent": {
+      "main": [
+        [
+          {
+            "node": "Profile Matcher Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Career Advisor Agent": {
+      "main": [
+        [
+          {
+            "node": "Action Planner Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "cd7b65b6-56df-4103-8c95-6ed366a4823a",
+  "meta": {
+    "instanceId": "08bc182688604d9b7901df089a294f6d16bcd8494807413604f1b1106baf2429"
+  },
+  "nodeGroups": [],
+  "id": "ALqJO1ToDfCaNhjA",
+  "tags": []
+}
